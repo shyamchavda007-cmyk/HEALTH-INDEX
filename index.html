@@ -446,7 +446,6 @@
 </head>
 <body>
 
-<!-- HEADER -->
 <header>
   <div class="header-deco"></div>
   <div class="header-deco2"></div>
@@ -457,7 +456,6 @@
   </div>
 </header>
 
-<!-- PROGRESS -->
 <div class="progress-wrap">
   <div class="progress-inner">
     <div class="progress-steps" id="progressDots"></div>
@@ -465,10 +463,8 @@
   </div>
 </div>
 
-<!-- MAIN -->
 <main>
 
-  <!-- STEP 1: Identity & District -->
   <div class="step active" id="step-1">
     <div class="card">
       <div class="section-label">About You</div>
@@ -530,7 +526,6 @@
     </div>
   </div>
 
-  <!-- STEP 2: Income & Education -->
   <div class="step" id="step-2">
     <div class="card">
       <div class="section-label">Socioeconomic Factors</div>
@@ -568,7 +563,6 @@
     </div>
   </div>
 
-  <!-- STEP 3: Mental Health -->
   <div class="step" id="step-3">
     <div class="card">
       <div class="section-label">Mental Health Assessment</div>
@@ -643,7 +637,6 @@
     </div>
   </div>
 
-  <!-- STEP 4: Food Habits -->
   <div class="step" id="step-4">
     <div class="card">
       <div class="section-label">Food Habits</div>
@@ -681,7 +674,6 @@
     </div>
   </div>
 
-  <!-- STEP 5: Toxic Substances -->
   <div class="step" id="step-5">
     <div class="card">
       <div class="section-label">Consumption of Toxic Substances</div>
@@ -728,12 +720,11 @@
       <div id="err-5" class="error-msg">Please answer tobacco and alcohol questions before continuing.</div>
       <div class="btn-row">
         <button class="btn btn-secondary" onclick="goPrev(5)">← Back</button>
-        <button class="btn btn-primary" onclick="goNext(5)">Calculate my Health Index →</button>
+        <button class="btn btn-primary" onclick="goNext(5)">Calculate & View Result →</button>
       </div>
     </div>
   </div>
 
-  <!-- STEP 6: Result -->
   <div class="step" id="step-6">
     <div class="card">
       <div class="section-label">Your Result</div>
@@ -762,21 +753,14 @@
 
       <div class="btn-row" style="justify-content:center; margin-top:24px;">
         <button class="btn btn-secondary" onclick="restart()">Start Over</button>
-        <button class="btn btn-primary" id="btnSubmit" onclick="submitData()">
-          Submit to Population Study
-        </button>
       </div>
-      <p class="privacy-note">By submitting, you consent to your anonymised data being used for Gujarat population health research by The M.S. University of Baroda. No personally identifying data is shared publicly.</p>
+      <p class="privacy-note">Your anonymised data has been securely submitted for Gujarat population health research by The M.S. University of Baroda.</p>
     </div>
   </div>
 
 </main>
 
 <script>
-  /* ─────────────────────────────────────────────────────────
-   *  CONFIGURATION — REPLACE WITH YOUR GOOGLE SCRIPT URL
-   *  (See the README.md for setup instructions)
-   * ───────────────────────────────────────────────────────── */
   const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz7NmcmaK5tuzy303B_He5P8UjofxzMTJFZSYkyG6sqZ97CSQJsxVX-o9dZr0c9aOi1ew/exec";
 
   /* ── STATE ─────────────────────────────────────────── */
@@ -806,7 +790,6 @@
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  /* ── VALIDATION HELPERS ────────────────────────────── */
   function val(id) { return (document.getElementById(id) || {}).value || ''; }
   function radio(name) {
     const el = document.querySelector(`input[name="${name}"]:checked`);
@@ -860,7 +843,11 @@
       formData.tobacco = parseInt(tob);
       formData.alcohol = parseInt(alc);
       formData.checkup = radio('checkup') || 'Not specified';
+      
+      // AUTO CALCULATE AND SUBMIT
       calculateAndShow();
+      submitData(); 
+      return; // Stop here as calculateAndShow handles the transition
     }
     if (step < TOTAL_STEPS) showStep(step + 1);
   }
@@ -885,7 +872,6 @@
     const T_raw = normalize(tSum, 2, 10);
     const T_adj = 1 - T_raw;
 
-    // PCA-based weights from the research
     const Hp = 0.2457256461232 * Y
              + 0.2198807157057 * E
              + 0.2497017892644 * M
@@ -905,35 +891,31 @@
     renderResult();
   }
 
-  /* ── RENDER RESULT ─────────────────────────────────── */
   function renderResult() {
     const H = calculatedIndex;
-
-    // Animate ring
-    const circumference = 2 * Math.PI * 65; // ≈ 408.4
+    const circumference = 2 * Math.PI * 65; 
     const offset = circumference * (1 - H);
     const ring = document.getElementById('ringFill');
     ring.style.strokeDasharray = circumference;
     setTimeout(() => { ring.style.strokeDashoffset = offset; }, 100);
 
-    // Color
     let color, verdict, sub, tip;
     if (H >= 0.75) {
       color = '#059669'; verdict = 'Excellent Health Status';
       sub = 'Your lifestyle choices are strongly supporting your overall well-being. Keep maintaining these healthy habits!';
-      tip = '💡 <strong>Tip:</strong> Continue your current diet, mental health practices, and exercise routine. Consider encouraging those around you to adopt similar habits.';
+      tip = '💡 <strong>Tip:</strong> Continue your current diet, mental health practices, and exercise routine.';
     } else if (H >= 0.60) {
       color = '#0d7377'; verdict = 'Good Health Status';
-      sub = 'You have a solid foundation for good health. There are a few areas where small improvements could make a big difference.';
-      tip = '💡 <strong>Tip:</strong> Focus on improving your food habits and reducing stress. Even adding one fruit a day and a 15-minute walk can meaningfully improve your index.';
+      sub = 'You have a solid foundation for good health. Small improvements could make a big difference.';
+      tip = '💡 <strong>Tip:</strong> Focus on improving food habits and reducing stress.';
     } else if (H >= 0.45) {
       color = '#d97706'; verdict = 'Moderate Health Status';
-      sub = 'Your health status is average. There are clear opportunities to improve your lifestyle choices and well-being.';
-      tip = '💡 <strong>Tip:</strong> Start with the most impactful change — improving mental health through regular sleep and social connection often yields the biggest gains. Consult a health professional for guidance.';
+      sub = 'Your health status is average. There are clear opportunities to improve your lifestyle choices.';
+      tip = '💡 <strong>Tip:</strong> Start with regular sleep and social connection.';
     } else {
       color = '#dc2626'; verdict = 'Below Average Health Status';
-      sub = 'Your current lifestyle patterns may be affecting your long-term well-being. Please consider speaking with a healthcare provider.';
-      tip = '💡 <strong>Tip:</strong> Small, consistent steps make a big difference. Focus on reducing toxic substance use and improving food quality. Please consider a medical consultation if you haven\'t had one recently.';
+      sub = 'Your current lifestyle patterns may be affecting your long-term well-being.';
+      tip = '💡 <strong>Tip:</strong> Focus on reducing toxic substance use and improving food quality.';
     }
 
     ring.style.stroke = color;
@@ -943,7 +925,6 @@
     document.getElementById('resultSub').textContent = sub;
     document.getElementById('tipBox').innerHTML = tip;
 
-    // Breakdown
     const items = [
       { label: 'Income', val: formData.Y_normal, desc: 'Normalized' },
       { label: 'Education', val: formData.E_normal, desc: 'Normalized' },
@@ -960,19 +941,17 @@
     `).join('');
   }
 
-  /* ── SUBMIT DATA ───────────────────────────────────── */
+  /* ── BACKGROUND SUBMISSION ─────────────────────────── */
   async function submitData() {
-    const btn = document.getElementById('btnSubmit');
     const status = document.getElementById('submitStatus');
 
     if (GOOGLE_SCRIPT_URL === "YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE") {
       status.className = 'submit-status error-s';
-      status.innerHTML = '⚠️ The researcher needs to configure the Google Sheets endpoint. See <strong>README.md</strong> for setup instructions. Your index has been calculated successfully!';
+      status.innerHTML = 'ℹ️ Note: Auto-submission is ready, but the Google Sheets URL is not configured yet.';
       return;
     }
 
-    btn.disabled = true;
-    btn.innerHTML = '<span class="spinner"></span> Submitting…';
+    status.innerHTML = '<span class="spinner" style="border-top-color: var(--teal); border-left-color: var(--teal);"></span> Saving data to population study...';
 
     const payload = {
       timestamp: formData.timestamp,
@@ -1003,17 +982,13 @@
         body: JSON.stringify(payload)
       });
       status.className = 'submit-status success';
-      status.innerHTML = '✅ Thank you! Your data has been submitted to the population health study. Reference ID: <strong>' + Date.now().toString(36).toUpperCase() + '</strong>';
-      btn.textContent = 'Submitted ✓';
+      status.innerHTML = '✅ Data submitted successfully to the study.';
     } catch (err) {
       status.className = 'submit-status error-s';
-      status.innerHTML = '❌ Submission failed. Please try again or contact the researcher.';
-      btn.disabled = false;
-      btn.textContent = 'Submit to Population Study';
+      status.innerHTML = '⚠️ Index calculated, but submission failed. Please check your connection.';
     }
   }
 
-  /* ── RESTART ───────────────────────────────────────── */
   function restart() {
     formData = {}; calculatedIndex = null;
     document.querySelectorAll('input[type=radio]').forEach(r => r.checked = false);
@@ -1021,8 +996,6 @@
       .forEach(i => i.value = '');
     document.querySelectorAll('select').forEach(s => s.value = '');
     document.getElementById('submitStatus').innerHTML = '';
-    document.getElementById('btnSubmit').disabled = false;
-    document.getElementById('btnSubmit').textContent = 'Submit to Population Study';
     showStep(1);
   }
 </script>
